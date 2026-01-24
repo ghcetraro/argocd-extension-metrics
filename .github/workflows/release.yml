@@ -1,0 +1,198 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+
+env:
+  GO_VERSION: '1.21'
+  NODE_VERSION: '18'
+  BINARY_NAME: argocd-metrics-server
+  UI_DIR: extensions/resource-metrics/resource-metrics-extention/ui
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Necesario para obtener tags y commits completos
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Cache Yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.UI_DIR }}/node_modules
+            ~/.yarn/cache
+          key: ${{ runner.os }}-yarn-${{ hashFiles('${{ env.UI_DIR }}/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Get version from tag or commit
+        id: version
+        run: |
+          if git describe --tags --exact-match HEAD 2>/dev/null; then
+            VERSION=$(git describe --tags --exact-match HEAD)
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "is_tag=true" >> $GITHUB_OUTPUT
+          else
+            VERSION="v$(date +%Y%m%d)-$(git rev-parse --short HEAD)"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "is_tag=false" >> $GITHUB_OUTPUT
+          fi
+          echo "Version: $VERSION"
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Download Go dependencies
+        run: go mod download
+
+      - name: Build Go binary
+        run: |
+          # Crear directorio dist si no existe
+          mkdir -p dist
+          # Intentar build con make, si falla por PACKAGE, buildear directamente
+          make build 2>&1 || \
+            go build -v -o dist/${{ env.BINARY_NAME }} ./cmd
+          ls -lh dist/
+          file dist/${{ env.BINARY_NAME }} || true
+          # Verificar que el binario sea ejecutable
+          chmod +x dist/${{ env.BINARY_NAME }}
+          # Verificar que el binario funcione
+          dist/${{ env.BINARY_NAME }} --help || true
+
+      - name: Build UI extension
+        run: |
+          make build-ui
+          ls -lh ${{ env.UI_DIR }}/
+
+      - name: Create extension.tar.gz from extension.tar
+        run: |
+          cd ${{ env.UI_DIR }}
+          if [ -f extension.tar ]; then
+            gzip -k extension.tar
+            echo "Created extension.tar.gz"
+            ls -lh extension.tar*
+          else
+            echo "ERROR: extension.tar not found"
+            exit 1
+          fi
+
+      - name: Generate checksums
+        run: |
+          cd ${{ env.UI_DIR }}
+          sha256sum extension.tar.gz > extension_checksums.txt
+          echo "Checksums generated:"
+          cat extension_checksums.txt
+
+      - name: Create release artifacts directory
+        run: |
+          mkdir -p release-artifacts
+          cp dist/${{ env.BINARY_NAME }} release-artifacts/
+          cp ${{ env.UI_DIR }}/extension.tar.gz release-artifacts/
+          cp ${{ env.UI_DIR }}/extension_checksums.txt release-artifacts/
+          ls -lh release-artifacts/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: release-artifacts/
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: steps.version.outputs.is_tag == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          body: |
+            ## Release ${{ steps.version.outputs.version }}
+            
+            ### Artifacts
+            - **Binary**: `${{ env.BINARY_NAME }}` - Servidor de métricas compilado
+            - **Extension**: `extension.tar.gz` - Extensión UI para ArgoCD
+            - **Checksums**: `extension_checksums.txt` - Checksums SHA256
+            
+            ### Instalación
+            
+            #### Metrics Server
+            ```bash
+            # Descargar el binario
+            wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${{ env.BINARY_NAME }}
+            chmod +x ${{ env.BINARY_NAME }}
+            ```
+            
+            #### UI Extension
+            ```yaml
+            # En el deployment de ArgoCD
+            initContainers:
+              - name: extension-metrics
+                image: quay.io/argoprojlabs/argocd-extension-installer:v0.0.1
+                env:
+                - name: EXTENSION_URL
+                  value: https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/extension.tar.gz
+                - name: EXTENSION_CHECKSUM_URL
+                  value: https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/extension_checksums.txt
+            ```
+            
+            ### Cambios
+            - Extensión modificada para conexión directa al metrics server
+            - URL configurada: `http://argocd-metrics-dev.devops.ligo.live`
+          files: |
+            release-artifacts/${{ env.BINARY_NAME }}
+            release-artifacts/extension.tar.gz
+            release-artifacts/extension_checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Pre-release (no tag)
+        if: steps.version.outputs.is_tag == 'false'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Pre-release ${{ steps.version.outputs.version }}
+          prerelease: true
+          body: |
+            ## Pre-release ${{ steps.version.outputs.version }}
+            
+            Build automático desde master (commit: ${{ github.sha }})
+            
+            ### Artifacts
+            - **Binary**: `${{ env.BINARY_NAME }}`
+            - **Extension**: `extension.tar.gz`
+            - **Checksums**: `extension_checksums.txt`
+          files: |
+            release-artifacts/${{ env.BINARY_NAME }}
+            release-artifacts/extension.tar.gz
+            release-artifacts/extension_checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
