@@ -18,6 +18,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Necesario para crear releases y subir assets
     
     steps:
       - name: Checkout code
