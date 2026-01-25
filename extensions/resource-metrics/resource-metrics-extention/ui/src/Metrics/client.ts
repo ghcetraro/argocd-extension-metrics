@@ -8,7 +8,7 @@ export const apiCall = (url: string, headers: Record<string, string>) => {
     });
 };
 
-// This function is making an api call directly to the metrics server (bypassing ArgoCD proxy)
+// This function is making an api call to argocd api-server, which invokes the metrics extension to retrieve the dashboard configuration based on resource Kind.
 export function getDashBoard({
   applicationName,
   applicationNamespace,
@@ -20,8 +20,7 @@ export function getDashBoard({
   resourceType: string;
   project: string;
 }) {
-  // Direct connection to metrics server instead of using ArgoCD proxy
-  const url = `http://argocd-metrics-dev.devops.ligo.live/api/applications/${applicationName}/groupkinds/${resourceType.toLowerCase()}/dashboards`;
+  const url = `/extensions/metrics/api/applications/${applicationName}/groupkinds/${resourceType.toLowerCase()}/dashboards`;
   return fetch(url, {
     headers: getHeaders({ applicationName, applicationNamespace, project }),
   })
