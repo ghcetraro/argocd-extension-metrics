@@ -59,3 +59,26 @@ La configuración de Prometheus y las queries se define en el ConfigMap (`manife
 ## Licencia
 
 Ver [LICENSE](LICENSE).
+
+
+---
+
+## Documentación del proyecto
+
+- [Changelog](CHANGELOG.md)
+- [Contribuir](CONTRIBUTING.md)
+
+---
+
+## Seguridad
+
+No commitees secretos, tfvars con credenciales reales ni archivos de state.
+
+Ver [SECURITY.md](SECURITY.md).
+
+---
+
+## Licencia
+
+Apache License 2.0 (ver [LICENSE](LICENSE))
+
