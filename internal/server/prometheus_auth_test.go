@@ -10,6 +10,15 @@ import (
 	"go.uber.org/zap"
 )
 
+func TestNormalizePrometheusAddress(t *testing.T) {
+	assert.Equal(t, "https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom",
+		normalizePrometheusAddress("https://prometheus-prod-13-prod-us-east-0.grafana.net"))
+	assert.Equal(t, "https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom",
+		normalizePrometheusAddress("https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom"))
+	assert.Equal(t, "https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom",
+		normalizePrometheusAddress("https://prometheus-prod-13-prod-us-east-0.grafana.net/"))
+}
+
 func TestApplyPrometheusAuth_NoAuth(t *testing.T) {
 	cfg := &config.HTTPClientConfig{}
 	p := &provider{}

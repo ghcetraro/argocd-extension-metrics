@@ -70,8 +70,13 @@ func NewPrometheusProvider(prometheusConfig *MetricsConfigProvider, logger *zap.
 
 func (pp *PrometheusProvider) init() error {
 	if addr := os.Getenv("PROMETHEUS_ADDRESS"); addr != "" {
+		addr = normalizePrometheusAddress(addr)
 		pp.config.Provider.Address = addr
-		pp.logger.Infof("Prometheus address overridden from PROMETHEUS_ADDRESS")
+		pp.logger.Infof("Prometheus address overridden from PROMETHEUS_ADDRESS: %s", addr)
+	}
+
+	if pp.config.Provider.Address == "" || !strings.Contains(pp.config.Provider.Address, "://") {
+		return fmt.Errorf("prometheus address inválido %q (falta scheme http/https)", pp.config.Provider.Address)
 	}
 
 	httpClientConfig := config.HTTPClientConfig{}
@@ -109,6 +114,23 @@ func (pp *PrometheusProvider) init() error {
 	}
 	pp.provider = v1.NewAPI(client)
 	return nil
+}
+
+// normalizePrometheusAddress completa la URL de query de Grafana Cloud si viene solo el host.
+// En Vault prometheus_url suele ser https://….grafana.net (Alloy agrega /api/prom/push).
+func normalizePrometheusAddress(addr string) string {
+	addr = strings.TrimSpace(addr)
+	addr = strings.TrimRight(addr, "/")
+	if addr == "" {
+		return addr
+	}
+	if strings.Contains(addr, "/api/prom") {
+		return addr
+	}
+	if strings.Contains(addr, "grafana.net") || strings.HasPrefix(addr, "http://") || strings.HasPrefix(addr, "https://") {
+		return addr + "/api/prom"
+	}
+	return addr
 }
 
 // applyPrometheusAuth configura basic auth o bearer hacia Prometheus.
