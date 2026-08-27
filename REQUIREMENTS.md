@@ -6,11 +6,10 @@ Servidor de métricas y extensión UI para Argo CD que consulta Prometheus y mue
 
 ## Alcance
 
-- Debe hacer:
-  - Exponer API HTTP para dashboards/queries Prometheus
+- Autenticación hacia Prometheus: basic auth y bearer token (env `PROMETHEUS_*` o ConfigMap)
+  - Override de URL con `PROMETHEUS_ADDRESS`
   - Extensión UI embebible en Argo CD
   - Conectarse a Prometheus por HTTP/HTTPS, en cluster o en Internet
-  - Autenticación hacia Prometheus: basic auth y bearer token (env o config)
   - TLS configurable (`TLSConfig` / skip-verify cuando no hay CA)
 - No debe hacer (no-goals):
   - Sustituir Grafana u otros backends de observabilidad

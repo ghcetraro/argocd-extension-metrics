@@ -26,6 +26,7 @@ En el ConfigMap, bloque `prometheus.provider`:
 
 | Variable | Uso |
 |----------|-----|
+| `PROMETHEUS_ADDRESS` | URL base del Prometheus (prioridad sobre `provider.address` del ConfigMap) |
 | `PROMETHEUS_USERNAME` | Usuario basic auth |
 | `PROMETHEUS_PASSWORD` | Clave basic auth |
 | `PROMETHEUS_PASSWORD_FILE` | Archivo con la clave (alternativa) |

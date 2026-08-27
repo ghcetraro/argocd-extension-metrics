@@ -8,6 +8,7 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 ### Added
 
 - Autenticación hacia Prometheus: basic auth y bearer token vía env (`PROMETHEUS_*`) o ConfigMap (`basic_auth`, `bearer_token`, `bearer_token_file`)
+- Override de URL con `PROMETHEUS_ADDRESS` (prioridad sobre el ConfigMap)
 - Ejemplo de Secret Kubernetes (`manifests/secret.example.yaml`) y documentación en `docs/configuracion-prometheus.md`
 - Probes `/healthz` y `revisionHistoryLimit: 0` en el Deployment
 - `REQUIREMENTS.md`, `WHITELIST.md` y reglas Cursor adaptadas (`.cursor/`)

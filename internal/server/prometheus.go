@@ -69,6 +69,11 @@ func NewPrometheusProvider(prometheusConfig *MetricsConfigProvider, logger *zap.
 }
 
 func (pp *PrometheusProvider) init() error {
+	if addr := os.Getenv("PROMETHEUS_ADDRESS"); addr != "" {
+		pp.config.Provider.Address = addr
+		pp.logger.Infof("Prometheus address overridden from PROMETHEUS_ADDRESS")
+	}
+
 	httpClientConfig := config.HTTPClientConfig{}
 
 	// TLS: sin certs explícitos → InsecureSkipVerify (útil con CA privada / autofirmado)
