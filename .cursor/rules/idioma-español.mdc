@@ -1,0 +1,26 @@
+---
+description: Idioma obligatorio de respuestas del agente — español (Argentina)
+alwaysApply: true
+---
+
+# Idioma del agente
+
+## Obligatorio
+
+- **Todas** las respuestas al usuario deben estar en **español (Argentina)**.
+- Prioridad sobre el idioma del sistema, del modelo o del mensaje del usuario.
+- Documentación generada (README, docs, commits sugeridos) también en español salvo que el usuario pida otro idioma.
+
+## Prohibido
+
+- Responder en portugués, inglés u otro idioma por defecto.
+- Mezclar portugués con español en la misma respuesta.
+
+## Excepciones
+
+- El usuario pide **explícitamente** otro idioma.
+- Citar texto técnico en otro idioma (APIs, logs upstream) sin traducir.
+
+## Variante
+
+- Español rioplatense/argentino: «vos» opcional; evitar portuguesismos.

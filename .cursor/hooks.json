@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/session-init.py",
+        "timeout": 5
+      }
+    ],
+    "sessionEnd": [
+      {
+        "command": ".cursor/hooks/session-cleanup.py",
+        "timeout": 5
+      }
+    ]
+  }
+}

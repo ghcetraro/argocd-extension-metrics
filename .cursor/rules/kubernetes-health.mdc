@@ -1,0 +1,12 @@
+---
+description: Health checks y revisionHistoryLimit en manifests Kubernetes
+alwaysApply: true
+---
+
+# Kubernetes en este repo
+
+Manifiestos en `manifests/` (kustomize, sin Helm chart local).
+
+- Health HTTP: `/healthz` (sin auth) → probes `liveness`/`readiness` en el Deployment
+- `revisionHistoryLimit: 0` en el Deployment
+- No agregar probes que dependan de Prometheus (el health del server es local)

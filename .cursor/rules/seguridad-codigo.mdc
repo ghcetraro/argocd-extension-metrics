@@ -1,0 +1,13 @@
+---
+description: Seguridad en código — secretos, TLS, auth Prometheus
+alwaysApply: true
+---
+
+# Seguridad
+
+- No hardcodear credenciales. Prometheus: Secret + env `PROMETHEUS_*` o `*_file` montados.
+- No commitear `.env`, passwords en ConfigMap de ejemplo, ni tokens reales.
+- No debilitar auth; basic y bearer son mutuamente excluyentes.
+- Preferir HTTPS. `InsecureSkipVerify` solo cuando no hay CA configurada / entornos de prueba.
+- No loguear passwords ni tokens.
+- Actualizar `SECURITY.md` si cambia el manejo de secretos.

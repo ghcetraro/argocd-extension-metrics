@@ -1,0 +1,18 @@
+---
+description: Seguimiento operativo en PENDIENTES.md
+alwaysApply: true
+---
+
+# Pendientes (`PENDIENTES.md`)
+
+Opcional. Crear/actualizar cuando quede algo por verificar (deploy, CI, sync). Formato:
+
+```markdown
+## Abiertos
+- [ ] **YYYY-MM-DD** — Título
+  - **Contexto**: …
+  - **Revisar**: …
+  - **Cuándo**: …
+```
+
+Al entrar al repo, si hay ítems `- [ ]`, mencionarlos brevemente.

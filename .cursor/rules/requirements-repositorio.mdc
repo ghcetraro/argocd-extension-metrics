@@ -1,0 +1,10 @@
+---
+description: Leer REQUIREMENTS.md — alcance y cómo tratar el proyecto
+alwaysApply: true
+---
+
+# Requerimientos (`REQUIREMENTS.md`)
+
+Si existe en la raíz, **leerlo** antes de implementar o ampliar alcance. Si el pedido del usuario contradice el archivo, avisar y confirmar.
+
+No duplicar aquí deploy/CI (van en README / `docs/`).

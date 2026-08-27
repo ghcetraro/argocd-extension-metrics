@@ -1,0 +1,29 @@
+---
+description: Mantener CHANGELOG, CONTRIBUTING, LICENSE, README, SECURITY y docs
+alwaysApply: true
+---
+
+# Archivos estándar de este repositorio
+
+Mantener al día en la raíz: `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `LICENSE`, `SECURITY.md`. Opcionales: `REQUIREMENTS.md`, `PENDIENTES.md`, `WHITELIST.md`. Detalle en `docs/`.
+
+## Cuándo actuar
+
+- Proyecto nuevo / feature relevante: actualizar archivos afectados en el mismo cambio.
+- No tocar `vendor/`, `node_modules/`, dependencias de terceros.
+
+## README.md
+
+Español, conciso. Enlaces a `docs/`, `REQUIREMENTS.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`.
+
+## REQUIREMENTS.md
+
+Alcance de producto / cómo tratar el proyecto. Leerlo antes de editar si existe.
+
+## CHANGELOG.md
+
+Versión semántica; entrada nueva arriba.
+
+## SECURITY.md
+
+Sin secretos en git. Credenciales Prometheus vía Secret + env `PROMETHEUS_*`.

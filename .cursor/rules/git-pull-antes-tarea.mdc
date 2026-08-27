@@ -1,0 +1,20 @@
+---
+description: Sincronizar con remoto (pull) antes de empezar cualquier tarea en este repo
+alwaysApply: true
+---
+
+# Pull antes de cada tarea
+
+Antes de editar archivos o build en este repo:
+
+```bash
+cd <raíz-del-repo>
+git fetch origin
+git status -sb
+```
+
+Si el branch tiene upstream y está **behind** con working tree limpio: `git pull --ff-only`.
+
+Si hay cambios locales o divergencia (ahead/behind sin fast-forward): **no** forzar merge/rebase; informar al usuario.
+
+Si no hay remoto `origin`: omitir sin error.

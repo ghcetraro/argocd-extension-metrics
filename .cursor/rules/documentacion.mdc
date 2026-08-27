@@ -1,0 +1,11 @@
+---
+description: Documentación actualizada en README y docs/
+alwaysApply: true
+---
+
+# Documentación
+
+- Uso y despliegue: `README.md`
+- Detalle (Prometheus HTTPS/auth): `docs/configuracion-prometheus.md`
+- Al cambiar config, auth, manifests o API: actualizar docs en el mismo cambio
+- Health: `GET /healthz` en puerto `9003`

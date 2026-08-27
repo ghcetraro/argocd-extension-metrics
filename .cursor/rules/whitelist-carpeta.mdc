@@ -1,0 +1,8 @@
+---
+description: Respetar WHITELIST.md local antes de modificar archivos
+alwaysApply: true
+---
+
+# WHITELIST.md
+
+Si existe `WHITELIST.md` en la carpeta o un padre hasta la raíz del repo, leerlo y cumplirlo antes de crear/editar/borrar. Si una acción lo viola, no ejecutar; informar.

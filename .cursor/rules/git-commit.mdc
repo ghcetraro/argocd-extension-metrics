@@ -1,0 +1,20 @@
+---
+description: Commits git sin --trailer (Git 2.25 incompatible con Cursor attribution)
+alwaysApply: true
+---
+
+# Commits git (sin attribution ni --trailer)
+
+En esta máquina: **Git 2.25.1** (Ubuntu 20.04). `git commit --trailer` **no existe** (requiere Git ≥ 2.32).
+
+## Prohibido
+
+- Usar `git commit --trailer …`.
+- Agregar trailers de Cursor: `Made-with: Cursor`, `Co-authored-by: Cursor`, etc.
+
+## Obligatorio al commitear
+
+1. Commit Attribution desactivada; no reintentar workarounds por `trailer`.
+2. Commit estándar: `git commit -m "mensaje"` o `-F` con archivo temporal.
+3. Si falla por `trailer`, usar `/usr/bin/git commit -F /tmp/commit-msg.txt`.
+4. No agregar footers de attribution en PRs.

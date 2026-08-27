@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: argocd-metrics-server
 spec:
+  revisionHistoryLimit: 0
   selector:
     matchLabels:
       app: argocd-metrics-server
@@ -14,6 +15,7 @@ spec:
         app: argocd-metrics-server
     spec:
       containers:
+        # Auth Prometheus (opcional): descomentar env y crear Secret desde secret.example.yaml
         - image: quay.io/argoprojlabs/argocd-extension-metrics:latest
           imagePullPolicy: IfNotPresent
           args:
@@ -23,6 +25,34 @@ spec:
             - containerPort: 9003
               name: metrics
               protocol: TCP
+          # env:
+          #   - name: PROMETHEUS_USERNAME
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: argocd-metrics-prometheus-auth
+          #         key: username
+          #   - name: PROMETHEUS_PASSWORD
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: argocd-metrics-prometheus-auth
+          #         key: password
+          #   - name: PROMETHEUS_BEARER_TOKEN
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: argocd-metrics-prometheus-auth
+          #         key: bearer_token
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
           resources:
             requests:
               cpu: 100m

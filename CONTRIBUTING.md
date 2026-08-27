@@ -19,7 +19,7 @@ Para vulnerabilidades, seguí [SECURITY.md](SECURITY.md).
 
 ## Pull requests
 
-1. Fork del repo y branch desde `main`:
+1. Fork del repo y branch desde `master` (o `main` si es el default del remoto):
    ```bash
    git checkout -b feature/mi-cambio
    ```
@@ -29,13 +29,14 @@ Para vulnerabilidades, seguí [SECURITY.md](SECURITY.md).
    make test
    make build
    ```
-4. Actualizá README.md y CHANGELOG.md si cambiás comportamiento.
+4. Actualizá README.md, `docs/` y CHANGELOG.md si cambiás comportamiento.
 5. Abrí el PR describiendo el **por qué** del cambio.
 
 ## Estilo
 
 - Go 1.21+, seguir estilo del código existente
-- Health checks en endpoints HTTP
+- Health: `GET /healthz` sin auth
+- Credenciales Prometheus solo por Secret/env, nunca en git
 - Cambios mínimos por PR
 
 ## Releases

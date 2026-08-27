@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"text/template"
 	"net/http"
+	"os"
 	"strings"
+	"text/template"
 	"time"
 
-	"github.com/prometheus/common/model"
 	"github.com/prometheus/common/config"
+	"github.com/prometheus/common/model"
 	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
@@ -68,30 +69,31 @@ func NewPrometheusProvider(prometheusConfig *MetricsConfigProvider, logger *zap.
 }
 
 func (pp *PrometheusProvider) init() error {
-	// Configurar HTTP client con TLS
 	httpClientConfig := config.HTTPClientConfig{}
-	
-	// Si TLSConfig está configurado, usarlo; si no, usar InsecureSkipVerify para desarrollo
-	if pp.config.Provider.TLSConfig.InsecureSkipVerify || 
-		(pp.config.Provider.TLSConfig.CAFile == "" && 
-		 pp.config.Provider.TLSConfig.CertFile == "" && 
-		 pp.config.Provider.TLSConfig.KeyFile == "") {
-		// No hay configuración TLS, usar InsecureSkipVerify para desarrollo
+
+	// TLS: sin certs explícitos → InsecureSkipVerify (útil con CA privada / autofirmado)
+	if pp.config.Provider.TLSConfig.InsecureSkipVerify ||
+		(pp.config.Provider.TLSConfig.CAFile == "" &&
+			pp.config.Provider.TLSConfig.CertFile == "" &&
+			pp.config.Provider.TLSConfig.KeyFile == "") {
 		httpClientConfig.TLSConfig = config.TLSConfig{
 			InsecureSkipVerify: true,
 		}
 		pp.logger.Warnf("Using InsecureSkipVerify for Prometheus connection (development mode)")
 	} else {
-		// Usar la configuración TLS del provider
 		httpClientConfig.TLSConfig = pp.config.Provider.TLSConfig
 	}
-	
+
+	if err := applyPrometheusAuth(&httpClientConfig, &pp.config.Provider, pp.logger); err != nil {
+		return err
+	}
+
 	httpClient, err := config.NewClientFromConfig(httpClientConfig, "prometheus")
 	if err != nil {
 		pp.logger.Errorf("Error creating HTTP client: %v\n", err)
 		return err
 	}
-	
+
 	client, err := api.NewClient(api.Config{
 		Address:      pp.config.Provider.Address,
 		RoundTripper: httpClient.Transport,
@@ -101,6 +103,69 @@ func (pp *PrometheusProvider) init() error {
 		return err
 	}
 	pp.provider = v1.NewAPI(client)
+	return nil
+}
+
+// applyPrometheusAuth configura basic auth o bearer hacia Prometheus.
+// Prioridad: variables de entorno > campos del ConfigMap (provider).
+// Env: PROMETHEUS_USERNAME, PROMETHEUS_PASSWORD, PROMETHEUS_PASSWORD_FILE,
+// PROMETHEUS_BEARER_TOKEN, PROMETHEUS_BEARER_TOKEN_FILE.
+func applyPrometheusAuth(httpClientConfig *config.HTTPClientConfig, p *provider, logger *zap.SugaredLogger) error {
+	username := os.Getenv("PROMETHEUS_USERNAME")
+	password := os.Getenv("PROMETHEUS_PASSWORD")
+	passwordFile := os.Getenv("PROMETHEUS_PASSWORD_FILE")
+	bearerToken := os.Getenv("PROMETHEUS_BEARER_TOKEN")
+	bearerTokenFile := os.Getenv("PROMETHEUS_BEARER_TOKEN_FILE")
+
+	if bearerToken == "" && p.BearerToken != "" {
+		bearerToken = string(p.BearerToken)
+	}
+	if bearerTokenFile == "" {
+		bearerTokenFile = p.BearerTokenFile
+	}
+
+	hasBearer := bearerToken != "" || bearerTokenFile != ""
+	hasBasicFromEnv := username != "" || password != "" || passwordFile != ""
+	hasBasicFromConfig := p.BasicAuth != nil &&
+		(p.BasicAuth.Username != "" || p.BasicAuth.Password != "" || p.BasicAuth.PasswordFile != "")
+	hasBasic := hasBasicFromEnv || hasBasicFromConfig
+
+	if hasBearer && hasBasic {
+		return fmt.Errorf("prometheus auth: no se puede usar basic_auth y bearer_token a la vez")
+	}
+
+	if hasBearer {
+		httpClientConfig.BearerToken = config.Secret(bearerToken)
+		httpClientConfig.BearerTokenFile = bearerTokenFile
+		logger.Infof("Prometheus auth: bearer token habilitado")
+		return nil
+	}
+
+	if !hasBasic {
+		return nil
+	}
+
+	ba := &config.BasicAuth{}
+	if p.BasicAuth != nil {
+		*ba = *p.BasicAuth
+	}
+	if username != "" {
+		ba.Username = username
+	}
+	if password != "" {
+		ba.Password = config.Secret(password)
+	}
+	if passwordFile != "" {
+		ba.PasswordFile = passwordFile
+	}
+	if ba.Username == "" {
+		return fmt.Errorf("prometheus auth: basic_auth requiere username (config o PROMETHEUS_USERNAME)")
+	}
+	if ba.Password == "" && ba.PasswordFile == "" {
+		return fmt.Errorf("prometheus auth: basic_auth requiere password, password_file o PROMETHEUS_PASSWORD(_FILE)")
+	}
+	httpClientConfig.BasicAuth = ba
+	logger.Infof("Prometheus auth: basic auth habilitado (user=%s)", ba.Username)
 	return nil
 }
 

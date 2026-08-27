@@ -1,0 +1,23 @@
+---
+description: Contexto y convenciones de argocd-extension-metrics
+alwaysApply: true
+---
+
+# Este repositorio
+
+Fork/adaptación de argoproj-labs: backend Go (`argocd-metrics-server`) + extensión UI para métricas en Argo CD vía Prometheus.
+
+## Stack
+
+- Go 1.21+, Gin, cliente Prometheus oficial
+- Config: ConfigMap → `/app/config.json`
+- Auth Prometheus: env `PROMETHEUS_*` o `basic_auth` / `bearer_token(_file)` en provider
+- UI: `extensions/resource-metrics/...`
+- CI: `.github/workflows/`
+
+## Convenciones
+
+- Leer `REQUIREMENTS.md` antes de ampliar alcance
+- Cambios mínimos; tests en `internal/server/*_test.go`
+- Imagen/build: `Makefile` (`make test`, `make build`)
+- Remoto GitHub: `ghcetraro/argocd-extension-metrics`

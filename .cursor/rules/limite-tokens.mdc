@@ -1,0 +1,17 @@
+---
+description: Cortar tareas atascadas para no gastar tokens
+alwaysApply: true
+---
+
+# Límite de resolución de tareas
+
+Si la tarea no avanza, detenerse y reportar.
+
+## Límites
+
+- Tool calls máximos: ~20 por tarea.
+- Reintentos del mismo enfoque: máximo 3.
+
+## Al cortar
+
+Responder solo con texto en español: qué pasó, qué se intentó, dónde se trabó, qué falta, próximos pasos. No seguir con más tool calls sin nueva info del usuario.

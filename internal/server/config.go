@@ -81,10 +81,13 @@ func (a Application) getDashBoard(groupKind string) *Dashboard {
 }
 
 type provider struct {
-	Name      string           `json:"name"`
-	Address   string           `json:"address"`
-	Default   bool             `json:"default"`
-	TLSConfig config.TLSConfig `json:"TLSConfig"`
+	Name            string            `json:"name"`
+	Address         string            `json:"address"`
+	Default         bool              `json:"default"`
+	TLSConfig       config.TLSConfig  `json:"TLSConfig"`
+	BasicAuth       *config.BasicAuth `json:"basic_auth,omitempty"`
+	BearerToken     config.Secret     `json:"bearer_token,omitempty"`
+	BearerTokenFile string            `json:"bearer_token_file,omitempty"`
 }
 
 type MetricsConfigProvider struct {
